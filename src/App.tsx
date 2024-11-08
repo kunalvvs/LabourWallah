@@ -4,8 +4,8 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Categories from './pages/Categories';
 import CategoryDetails from './pages/CategoryDetails';
-// import WorkerDashboard from './pages/WorkerDashboard';
-// import UserDashboard from './pages/UserDashboard';
+import WorkerDashboard from './pages/WorkerDashboard';
+import UserDashboard from './pages/UserDashboard';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import BookingPage from './pages/BookingPage';
@@ -20,8 +20,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/category/:categoryId" element={<CategoryDetails />} />
-        {/* <Route path="/worker-dashboard/*" element={<WorkerDashboard />} /> */}
-        {/* <Route path="/user-dashboard/*" element={<UserDashboard />} /> */}
+        <Route path="/worker-dashboard/*" element={<WorkerDashboard />} />
+        <Route path="/user-dashboard/*" element={<UserDashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/book/:workerId" element={<BookingPage />} />
