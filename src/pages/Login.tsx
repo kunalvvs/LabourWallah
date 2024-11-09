@@ -2,28 +2,47 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { login, verifyOtp } = useAuth();
 
-  const handleSendOtp = (e: React.FormEvent) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (phone.length === 10) {
+    if (phone.length !== 10) {
+      toast.error('Please enter a valid 10-digit phone number');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await login(phone);
       setIsOtpSent(true);
-      toast.success('OTP sent successfully!');
-    } else {
-      toast.error('Please enter a valid phone number');
+    } catch (error) {
+      toast.error('Failed to send OTP. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp.length === 6) {
-      toast.success('Login successful!');
-    } else {
-      toast.error('Please enter a valid OTP');
+    if (otp.length !== 6) {
+      toast.error('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await verifyOtp(phone, otp);
+    } catch (error) {
+      toast.error('Invalid OTP. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -33,9 +52,12 @@ export default function Login() {
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
           Login to Labour Wallah
         </h2>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          {!isOtpSent ? "Enter your phone number to receive OTP" : "Enter the OTP sent to your phone"}
+        </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form onSubmit={isOtpSent ? handleLogin : handleSendOtp}>
             <div className="space-y-6">
@@ -43,15 +65,21 @@ export default function Login() {
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
                   Phone Number
                 </label>
-                <div className="mt-1 relative">
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-gray-500 sm:text-sm">+91</span>
+                  </div>
                   <input
                     id="phone"
                     type="tel"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      if (value.length <= 10) setPhone(value);
+                    }}
                     disabled={isOtpSent}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter your phone number"
+                    className="block w-full pl-12 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter 10-digit number"
                   />
                   <Phone className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
                 </div>
@@ -62,25 +90,42 @@ export default function Login() {
                   <label htmlFor="otp" className="block text-sm font-medium text-gray-700">
                     OTP
                   </label>
-                  <div className="mt-1 relative">
+                  <div className="mt-1 relative rounded-md shadow-sm">
                     <input
                       id="otp"
                       type="text"
                       value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter OTP"
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '');
+                        if (value.length <= 6) setOtp(value);
+                      }}
+                      className="block w-full pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter 6-digit OTP"
                     />
                     <Lock className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
                   </div>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Didn't receive OTP?{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsOtpSent(false);
+                        setOtp('');
+                      }}
+                      className="text-blue-600 hover:text-blue-500"
+                    >
+                      Try again
+                    </button>
+                  </p>
                 </div>
               )}
 
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                disabled={isLoading}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isOtpSent ? 'Login' : 'Send OTP'}
+                {isLoading ? 'Processing...' : isOtpSent ? 'Verify OTP' : 'Send OTP'}
               </button>
             </div>
           </form>
