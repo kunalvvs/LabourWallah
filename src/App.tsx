@@ -11,6 +11,7 @@ import SignUp from './pages/SignUp';
 import BookingPage from './pages/BookingPage';
 import SearchResults from './pages/SearchResults';
 import Footer from './components/Footer';
+import AuthGuard from './middleware/AuthGuard';
 
 function App() {
   return (
@@ -20,11 +21,32 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/categories" element={<Categories />} />
         <Route path="/category/:categoryId" element={<CategoryDetails />} />
-        <Route path="/worker-dashboard/*" element={<WorkerDashboard />} />
-        <Route path="/user-dashboard/*" element={<UserDashboard />} />
+        <Route
+          path="/worker-dashboard/*"
+          element={
+            <AuthGuard allowedRoles={['worker']}>
+              <WorkerDashboard />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/user-dashboard/*"
+          element={
+            <AuthGuard allowedRoles={['user']}>
+              <UserDashboard />
+            </AuthGuard>
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/book/:workerId" element={<BookingPage />} />
+        <Route
+          path="/book/:workerId"
+          element={
+            <AuthGuard allowedRoles={['user']}>
+              <BookingPage />
+            </AuthGuard>
+          }
+        />
         <Route path="/search" element={<SearchResults />} />
       </Routes>
       <Footer />
